@@ -1,0 +1,31 @@
+workflows:
+  dart-code-editor-ios:
+    name: Dart Code Editor iOS
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+
+      - name: Install CocoaPods
+        script: find . -name "Podfile" -execdir pod install \;
+
+      - name: Build unsigned iOS app
+        script: flutter build ios --release --no-codesign
+
+      - name: Package unsigned IPA
+        script: |
+          mkdir -p build/ios/ipa/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ios/ipa/Payload/
+          cd build/ios/ipa
+          zip -qry DartCodeEditor-unsigned.ipa Payload
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
